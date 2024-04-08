@@ -17,3 +17,5 @@ To run main script, add command line argument with a sequence with any distribut
 ```
 python fill_buffer_seq.py GCAATGNNNNNNNNNNNNNNCTATACGTTGNNNNNNNNNNNNNCGTAGC
 ```
+
+To get a sequence from .dna file, convert it to .fa file in SnapGene, then use `sequence=$(cat data/BC05GLv2_FILLER.fa | grep -v "^>" | tr -d '\n')` and then can do `python fill_buffer_seq.py $sequence`.

@@ -11,6 +11,17 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import subprocess
 
+def get_re_indices(sequence, re):
+    start = 0
+    indices=[]
+    while True:
+        index = sequence.find(re, start)
+        if index == -1:
+            break
+        indices.append(index)
+        start = index + 1
+    return indices
+
 def rvcomp_re(re_sites):
     re_avoid = set()
     for r in re_sites:
@@ -25,6 +36,13 @@ def check_full_sequences(sequence, re_avoid):
     # Check if any element in the re_avoid is found in the sequence
     for element in re_avoid:
         if element in sequence:
+            # check if location of re is from the original template and not the buffer addition
+            new_indices = set(get_re_indices(sequence, element))
+            if element in dna_sequence:
+                og_indices = set(get_re_indices(dna_sequence, element))
+                difference = new_indices-og_indices
+                if len(difference) == 0:
+                    continue
             return False
     # ensure the full sequence maintains gc content 40-60%
     gc_count = 0
@@ -170,6 +188,8 @@ for buffer in valid_buffers:
 
 # output first n options to FASTA file
 n=100
+if n > len(final_sequences):
+    n = len(final_sequences)
 subset_final_sequences = final_sequences[0:n]
 records = [SeqRecord(Seq(seq), id=f"seq{i+1}", description="") for i, seq in enumerate(subset_final_sequences)]
 SeqIO.write(records, "results/valid_final_sequences.fasta", "fasta")
