@@ -8,7 +8,7 @@ from Bio import SeqIO
 from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
 from Bio.Seq import Seq
-from Bio import SeqRecord
+from Bio.SeqRecord import SeqRecord
 import subprocess
 
 def rvcomp_re(re_sites):
@@ -90,7 +90,7 @@ def local_blast_search(sequences,ref,outname):
     db_cmd = f"makeblastdb -dbtype nucl -in {ref}.fasta -out {ref}"
     # use below to build ref database once, then comment out for speed
     # subprocess.run(db_cmd, shell=True)
-    cmd = f"blastn -query {sequences} -db {ref} -out {outname}.xml -evalue 10 -outfmt 5"
+    cmd = f"blastn -query {sequences} -db {ref} -out {outname}.xml -evalue 0.001 -outfmt 5"
     subprocess.run(cmd, shell=True)
     result_handle = open(f"{outname}.xml")
     blast_records = NCBIXML.parse(result_handle)
@@ -115,8 +115,8 @@ def local_blast_search(sequences,ref,outname):
 
 
 # user set input sequence
-# dna_sequence = sys.argv[1]
-dna_sequence = "GCAATGNNNNNNNNNNNNNNCTATACGTTGNNNNNNNNNNNNNCGTAGC"
+dna_sequence = sys.argv[1]
+# dna_sequence = "GCAATGNNNNNNNNNNNNNNCTATACGTTGNNNNNNNNNNNNNCGTAGC"
 
 # restriction sites to avoid
 re_sites = ["CACCTGC", "GAATTC", "CGTCTC", "CTCGAG", "GCTAGC", "GGTACC", "TCTAGA", "ACCGGT"]
@@ -159,13 +159,17 @@ if len(valid_buffers) == 0:
 final_sequences = []
 for buffer in valid_buffers:
     seq = []
-    for i in range(len(buffer)):
-        buffer_index = n_indices[i]
-        if len(seq) < buffer_index:
-            seq += dna_sequence[len(seq):buffer_index]
-        seq += buffer[i]
-    final_sequences.append(seq)
+    i = 0
+    for position in range(len(dna_sequence)):
+        if dna_sequence[position] == "N":
+            seq.append(buffer[i])
+            i+=1
+        else:
+            seq.append(dna_sequence[position])
+    final_sequences.append("".join(seq))
 
-# output to FASTA file
-records = [SeqRecord(Seq(seq), id=f"Sequence_{i+1}") for i, seq in enumerate(final_sequences)]
-SeqIO.write(records, "valid_sequences.fasta", "fasta")
+# output first n options to FASTA file
+n=100
+subset_final_sequences = final_sequences[0:n]
+records = [SeqRecord(Seq(seq), id=f"seq{i+1}", description="") for i, seq in enumerate(subset_final_sequences)]
+SeqIO.write(records, "results/valid_final_sequences.fasta", "fasta")
