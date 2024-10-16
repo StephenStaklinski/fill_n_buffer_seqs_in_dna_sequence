@@ -1,4 +1,4 @@
-# A script to fill buffer characters denoted by "N" in a DNA sequence template
+# A script to fill buffer characters denoted by "N" in a DNA sequence template while avoiding restriction enzymes and maintaining GC content
 
 ### Installation
 To setup environment on Elzar (CSHL high performance computer):
